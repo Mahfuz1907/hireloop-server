@@ -3,28 +3,37 @@ import cors from "cors";
 import "dotenv/config";
 import { MongoClient, ObjectId } from "mongodb";
 
-// define express app and port
+// ----------------------------------define express app and port-----------------------------------------
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
-// middleware
+// -------------------------------------middleware-------------------------------------------------
 app.use(cors());
 app.use(express.json());
 
-// mongodb connection
+// ----------------------------------------------mongodb connection------------------------------------------
 const client = new MongoClient(process.env.MONGODB_URI);
-await client.connect();
+export async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log("You successfully connected to MongoDB!");
+    return client;
+  } catch (err) {
+    console.dir(err);
+  }
+}
+const mongoClient = await connectToMongoDB();
+const database = mongoClient.db("hireloop");
 
-// get the collections
-const database = client.db("hireloop");
+// --------------------------------------------------get the collections---------------------------------------
 const usersCollection = database.collection("user");
 
-// home route
+// ---------------------------------------------------home route-------------------------------------------------
 app.get("/", async (req, res) => {
   res.send("Welcome to Hireloop Api!");
 });
 
-// -----------------------Only admin can access--------------------------
+// ---------------------------------------------------Only admin can access---------------------------------------------
 
 // get all users
 app.get("/users", async (req, res) => {
