@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 // define express app and port
 const app = express();
@@ -24,10 +24,30 @@ app.get("/", async (req, res) => {
   res.send("Welcome to Hireloop Api!");
 });
 
+// -----------------------Only admin can access--------------------------
+
 // get all users
 app.get("/users", async (req, res) => {
   const users = await usersCollection.find({}).toArray();
   res.send(users);
+});
+
+// get user by id
+app.get("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const user = await usersCollection.findOne({
+    _id: new ObjectId(id),
+  });
+  res.send(user);
+});
+
+// get user by role
+app.get("/users/role/:role", async (req, res) => {
+  const { role } = req.params;
+  const user = await usersCollection.findOne({
+    role: role,
+  });
+  res.send(user);
 });
 
 // app listen
