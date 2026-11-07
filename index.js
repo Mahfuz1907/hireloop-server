@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // mongodb connection
-const client = new MongoClient(process.env.MONGODB_URI as string);
+const client = new MongoClient(process.env.MONGODB_URI);
 await client.connect();
 
 // get the collections
