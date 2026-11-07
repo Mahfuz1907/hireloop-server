@@ -24,6 +24,12 @@ app.get("/", async (req, res) => {
   res.send("Welcome to Hireloop Api!");
 });
 
+// get all users
+app.get("/users", async (req, res) => {
+  const users = await usersCollection.find({}).toArray();
+  res.send(users);
+});
+
 // app listen
 app.listen(port, () => {
   console.log("Server is running");
