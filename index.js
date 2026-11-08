@@ -77,6 +77,23 @@ app.get("/jobs", async (req, res) => {
   res.send(jobs);
 });
 
+// get jobs using pagination
+app.get("/jobs/page", async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const skip = (page - 1) * limit;
+  const jobs = await jobsCollection.find().skip(skip).limit(limit).toArray();
+  const totalJobs = await jobsCollection.countDocuments();
+
+  res.send({
+    jobs,
+    limit,
+    totalPages: Math.ceil(totalJobs / limit),
+    currentPage: page,
+    totalJobs,
+  });
+});
+
 // get jobs by id
 app.get("/jobs/:id", async (req, res) => {
   const { id } = req.params;
