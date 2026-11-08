@@ -34,7 +34,7 @@ app.get("/", async (req, res) => {
   res.send("Welcome to Hireloop Api!");
 });
 
-// ---------------------------------------------------Only admin can access---------------------------------------------
+// ---------------------------------------------------user related api---------------------------------------------
 
 // get all users
 app.get("/users", async (req, res) => {
@@ -54,13 +54,15 @@ app.get("/users/:id", async (req, res) => {
 // get user by role
 app.get("/users/role/:role", async (req, res) => {
   const { role } = req.params;
-  const user = await usersCollection.findOne({
-    role: role,
-  });
+  const user = await usersCollection
+    .find({
+      role: role,
+    })
+    .toArray();
   res.send(user);
 });
 
-// -----------------------------------------------------only recruiter can access------------------------------------
+// -----------------------------------------------------job related api------------------------------------
 
 // post job
 app.post("/add-job", async (req, res) => {
@@ -73,6 +75,27 @@ app.post("/add-job", async (req, res) => {
 app.get("/jobs", async (req, res) => {
   const jobs = await jobsCollection.find({}).toArray();
   res.send(jobs);
+});
+
+// get jobs by id
+app.get("/jobs/:id", async (req, res) => {
+  const { id } = req.params;
+  const job = await jobsCollection.findOne({ _id: new ObjectId(id) });
+  res.send(job);
+});
+
+// get jobs by recruiter
+app.get("/jobs/recruiter/:email", async (req, res) => {
+  const { email } = req.params;
+  const job = await jobsCollection.find({ recruiterEmail: email }).toArray();
+  res.send(job);
+});
+
+// delete job by id
+app.delete("/jobs/delete/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await jobsCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send(result);
 });
 
 // --------------------------------------------------------App listening--------------------------------------------------
