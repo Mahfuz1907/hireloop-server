@@ -98,6 +98,20 @@ app.delete("/jobs/delete/:id", async (req, res) => {
   res.send(result);
 });
 
+// edit job by id
+app.put("/jobs/edit/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+  const updateDoc = {
+    $set: updatedData,
+  };
+  const result = await jobsCollection.updateOne(
+    { _id: new ObjectId(id) },
+    updateDoc,
+  );
+  res.send(result);
+});
+
 // --------------------------------------------------------App listening--------------------------------------------------
 
 // app listen
