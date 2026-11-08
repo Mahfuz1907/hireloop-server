@@ -27,6 +27,7 @@ const database = mongoClient.db("hireloop");
 
 // --------------------------------------------------get the collections---------------------------------------
 const usersCollection = database.collection("user");
+const jobsCollection = database.collection("jobs");
 
 // ---------------------------------------------------home route-------------------------------------------------
 app.get("/", async (req, res) => {
@@ -58,6 +59,23 @@ app.get("/users/role/:role", async (req, res) => {
   });
   res.send(user);
 });
+
+// -----------------------------------------------------only recruiter can access------------------------------------
+
+// post job
+app.post("/add-job", async (req, res) => {
+  const job = req.body;
+  const result = await jobsCollection.insertOne(job);
+  res.send(result);
+});
+
+// get jobs
+app.get("/jobs", async (req, res) => {
+  const jobs = await jobsCollection.find({}).toArray();
+  res.send(jobs);
+});
+
+// --------------------------------------------------------App listening--------------------------------------------------
 
 // app listen
 app.listen(port, () => {
