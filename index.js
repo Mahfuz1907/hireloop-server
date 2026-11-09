@@ -28,6 +28,7 @@ const database = mongoClient.db("hireloop");
 // --------------------------------------------------get the collections---------------------------------------
 const usersCollection = database.collection("user");
 const jobsCollection = database.collection("jobs");
+const bookmarksCollection = database.collection("bookmarks");
 
 // ---------------------------------------------------home route-------------------------------------------------
 app.get("/", async (req, res) => {
@@ -126,6 +127,44 @@ app.put("/jobs/edit/:id", async (req, res) => {
     { _id: new ObjectId(id) },
     updateDoc,
   );
+  res.send(result);
+});
+
+// -------------------------------------------------------application related api-----------------------------------------
+
+// add bookmark
+app.post("/add-bookmark", async (req, res) => {
+  const bookmark = req.body;
+  const result = await bookmarksCollection.insertOne(bookmark);
+  res.send(result);
+});
+
+// get bookmarks
+app.get("/bookmarks", async (req, res) => {
+  const result = await bookmarksCollection.find({}).toArray();
+  res.send(result);
+});
+
+// get bookmarks by id
+app.get("/bookmarks/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await bookmarksCollection.findOne({ _id: new ObjectId(id) });
+  res.send(result);
+});
+
+// get bookmarks by job
+app.get("/bookmarks/job/:jobId", async (req, res) => {
+  const { jobId } = req.params;
+  const result = await bookmarksCollection.find({ jobId: jobId }).toArray();
+  res.send(result);
+});
+
+// get bookmarks by job seeker
+app.get("/bookmarks/seeker/:email", async (req, res) => {
+  const { email } = req.params;
+  const result = await bookmarksCollection
+    .find({ jobSeekerEmail: email })
+    .toArray();
   res.send(result);
 });
 
