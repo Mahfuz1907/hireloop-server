@@ -130,7 +130,7 @@ app.put("/jobs/edit/:id", async (req, res) => {
   res.send(result);
 });
 
-// -------------------------------------------------------application related api-----------------------------------------
+// -------------------------------------------------------bookmark related api-----------------------------------------
 
 // add bookmark
 app.post("/add-bookmark", async (req, res) => {
@@ -165,6 +165,13 @@ app.get("/bookmarks/seeker/:email", async (req, res) => {
   const result = await bookmarksCollection
     .find({ jobSeekerEmail: email })
     .toArray();
+  res.send(result);
+});
+
+// delete bookmark by id
+app.delete("/bookmarks/delete/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
 });
 
