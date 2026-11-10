@@ -73,6 +73,12 @@ app.post("/add-job", async (req, res) => {
   res.send(result);
 });
 
+// get all jobs
+app.get("/all-jobs", async (req, res) => {
+  const jobs = await jobsCollection.find().toArray();
+  res.send(jobs);
+});
+
 // get jobs by query
 app.get("/jobs", async (req, res) => {
   const query = {};
