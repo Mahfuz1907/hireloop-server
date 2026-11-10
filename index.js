@@ -29,6 +29,7 @@ const database = mongoClient.db("hireloop");
 const usersCollection = database.collection("user");
 const jobsCollection = database.collection("jobs");
 const bookmarksCollection = database.collection("bookmarks");
+const applicationsCollection = database.collection("applications");
 
 // ---------------------------------------------------home route-------------------------------------------------
 app.get("/", async (req, res) => {
@@ -71,12 +72,6 @@ app.post("/add-job", async (req, res) => {
   const result = await jobsCollection.insertOne(job);
   res.send(result);
 });
-
-//get jobs
-// app.get("/jobs", async (req, res) => {
-//   const jobs = await jobsCollection.find({}).toArray();
-//   res.send(jobs);
-// });
 
 // get jobs by query
 app.get("/jobs", async (req, res) => {
@@ -141,7 +136,7 @@ app.put("/jobs/edit/:id", async (req, res) => {
   res.send(result);
 });
 
-// -------------------------------------------------------bookmark related api-----------------------------------------
+// -------------------------------------------------------bookmark & application related api-----------------------------------------
 
 // add bookmark
 app.post("/add-bookmark", async (req, res) => {
@@ -150,9 +145,22 @@ app.post("/add-bookmark", async (req, res) => {
   res.send(result);
 });
 
+// apply for any job
+app.post("/add-application", async (req, res) => {
+  const application = req.body;
+  const result = await applicationsCollection.insertOne(application);
+  res.send(result);
+});
+
 // get bookmarks
 app.get("/bookmarks", async (req, res) => {
   const result = await bookmarksCollection.find({}).toArray();
+  res.send(result);
+});
+
+// get applications
+app.get("/applications", async (req, res) => {
+  const result = await applicationsCollection.find({}).toArray();
   res.send(result);
 });
 
@@ -163,10 +171,26 @@ app.get("/bookmarks/:id", async (req, res) => {
   res.send(result);
 });
 
+// get application by id
+app.get("/applications/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await applicationsCollection.findOne({
+    _id: new ObjectId(id),
+  });
+  res.send(result);
+});
+
 // get bookmarks by job
 app.get("/bookmarks/job/:jobId", async (req, res) => {
   const { jobId } = req.params;
   const result = await bookmarksCollection.find({ jobId: jobId }).toArray();
+  res.send(result);
+});
+
+// get applications by job
+app.get("/applications/job/:jobId", async (req, res) => {
+  const { jobId } = req.params;
+  const result = await applicationsCollection.find({ jobId: jobId }).toArray();
   res.send(result);
 });
 
@@ -179,10 +203,28 @@ app.get("/bookmarks/seeker/:email", async (req, res) => {
   res.send(result);
 });
 
+// get applications by job seeker
+app.get("/applications/seeker/:email", async (req, res) => {
+  const { email } = req.params;
+  const result = await applicationsCollection
+    .find({ jobSeekerEmail: email })
+    .toArray();
+  res.send(result);
+});
+
 // delete bookmark by id
 app.delete("/bookmarks/delete/:id", async (req, res) => {
   const { id } = req.params;
   const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(id) });
+  res.send(result);
+});
+
+// delete application by id
+app.delete("/applications/delete/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await applicationsCollection.deleteOne({
+    _id: new ObjectId(id),
+  });
   res.send(result);
 });
 
