@@ -72,27 +72,38 @@ app.post("/add-job", async (req, res) => {
   res.send(result);
 });
 
-// get jobs
+//get jobs
+// app.get("/jobs", async (req, res) => {
+//   const jobs = await jobsCollection.find({}).toArray();
+//   res.send(jobs);
+// });
+
+// get jobs by query
 app.get("/jobs", async (req, res) => {
-  const jobs = await jobsCollection.find({}).toArray();
+  const query = {};
+  console.log(req.query);
+  if (req.query) {
+    if (req.query.jobType) {
+      query.jobType = req.query.jobType;
+    }
+    if (req.query.isRemote) {
+      query.isRemote = req.query.isRemote === true;
+    }
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+    if (req.query.search) {
+      query.$or = [
+        { title: { $regex: req.query.search, $options: "i" } },
+        { company: { $regex: req.query.search, $options: "i" } },
+        { location: { $regex: req.query.search, $options: "i" } },
+        { responsibilities: { $regex: req.query.search, $options: "i" } },
+        { qualifications: { $regex: req.query.search, $options: "i" } },
+      ];
+    }
+  }
+  const jobs = await jobsCollection.find(query).toArray();
   res.send(jobs);
-});
-
-// get jobs using pagination
-app.get("/jobs/page", async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 5;
-  const skip = (page - 1) * limit;
-  const jobs = await jobsCollection.find().skip(skip).limit(limit).toArray();
-  const totalJobs = await jobsCollection.countDocuments();
-
-  res.send({
-    jobs,
-    limit,
-    totalPages: Math.ceil(totalJobs / limit),
-    currentPage: page,
-    totalJobs,
-  });
 });
 
 // get jobs by id
@@ -174,6 +185,8 @@ app.delete("/bookmarks/delete/:id", async (req, res) => {
   const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
 });
+
+// ------------------------------------------------------------
 
 // --------------------------------------------------------App listening--------------------------------------------------
 
