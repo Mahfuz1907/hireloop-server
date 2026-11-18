@@ -29,10 +29,68 @@ const database = mongoClient.db("hireloop");
 
 // --------------------------------------------------get the collections---------------------------------------
 const usersCollection = database.collection("user");
+const sessionsCollection = database.collection("session");
 const jobsCollection = database.collection("jobs");
 const bookmarksCollection = database.collection("bookmarks");
 const applicationsCollection = database.collection("applications");
 const paymentsCollection = database.collection("payments");
+
+//-----------------------------------------------middleware-----------------------------------------------
+const verifytoken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.send({ status: 401, message: "Unauthorized: No auth header" });
+  }
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.send({ status: 401, message: "Unauthorized: No token found" });
+  }
+
+  const session = await sessionsCollection.findOne({ token });
+  if (!session) {
+    return res.send({ status: 401, message: "Unauthorized: Invalid session" });
+  }
+
+  const userId = session.userId;
+  if (!userId) {
+    return res.send({
+      status: 401,
+      message: "Unauthorized: User ID missing in session",
+    });
+  }
+
+  const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+  if (!user) {
+    return res.send({ status: 401, message: "Unauthorized: User not found" });
+  }
+
+  req.user = user;
+  next();
+};
+
+const verifySeeker = async (req, res, next) => {
+  if (req.user.role !== "seeker") {
+    res.status(403).send({ message: "Forbidden" });
+    return;
+  }
+  next();
+};
+
+const verifyRecruiter = async (req, res, next) => {
+  if (req.user.role !== "recruiter") {
+    res.status(403).send({ message: "Forbidden" });
+    return;
+  }
+  next();
+};
+
+const verifyAdmin = async (req, res, next) => {
+  if (req.user.role !== "admin") {
+    res.status(403).send({ message: "Forbidden" });
+    return;
+  }
+  next();
+};
 
 // ---------------------------------------------------home route-------------------------------------------------
 app.get("/", async (req, res) => {
@@ -196,8 +254,18 @@ app.get("/bookmarks/job/:jobId", async (req, res) => {
 });
 
 // get applications by job
-app.get("/applications/job/:jobId", async (req, res) => {
+app.get("/applications/job/:jobId", verifytoken, async (req, res) => {
   const { jobId } = req.params;
+  const job = await jobsCollection.findOne({ _id: new ObjectId(jobId) });
+  const recruiter = await usersCollection.findOne({
+    email: job.recruiterEmail,
+  });
+  if (req.user._id.toString() !== recruiter._id.toString()) {
+    return res.status(403).send({
+      success: false,
+      message: "Unauthorized: You did not post this job",
+    });
+  }
   const result = await applicationsCollection.find({ jobId: jobId }).toArray();
   res.send(result);
 });
@@ -217,6 +285,21 @@ app.get("/applications/seeker/:email", async (req, res) => {
   const result = await applicationsCollection
     .find({ jobSeekerEmail: email })
     .toArray();
+  res.send(result);
+});
+
+// update application status
+app.patch("/applications/update/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedDoc = {
+    $set: {
+      status: req.body.status,
+    },
+  };
+  const result = await applicationsCollection.updateOne(
+    { _id: new ObjectId(id) },
+    updatedDoc,
+  );
   res.send(result);
 });
 
